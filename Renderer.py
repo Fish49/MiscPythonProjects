@@ -45,19 +45,19 @@ class TransformableV3(Vector3):
         return temp + center
 
     def translateT_ip(self, vect):
-        self = self + vect
+        self.update(self + vect)
 
     def rotateT_ip(self, center, angle, axis):
         temp: Vector3 = self - center
         temp.rotate_ip(angle, axis)
 
-        self = temp + center
+        self.update(temp + center)
 
     def scaleT_ip(self, factor, center):
         temp: Vector3 = self - center
         temp = temp * factor
 
-        self = temp + center
+        self.update(temp + center)
 
     def getDiffAngle(self):
         vect2 = self.copy()
@@ -134,15 +134,19 @@ class Plane(Ray):
         nray.rotation = nray.rotation * sval
         return (sval, nray.getDestination())
 
+class Vertex():
+    def __init__(self, *args) -> None:
+        self.vector = TransformableV3(*args)
+
 class Face():
     def __init__(self, vertecies, HS = (0, 0)) -> None:
         self.flipNormal = False
-        self.vertecies: list[TransformableV3] = vertecies
+        self.vertecies: list[Vertex] = vertecies
         self.HS = HS
 
     def getNormal(self):
-        edge1: TransformableV3 = self.vertecies[2] - self.vertecies[1]
-        edge2: TransformableV3 = self.vertecies[0] - self.vertecies[1]
+        edge1: TransformableV3 = self.vertecies[2].vector - self.vertecies[1].vector
+        edge2: TransformableV3 = self.vertecies[0].vector - self.vertecies[1].vector
 
         N = edge1.cross(edge2)
 
@@ -151,7 +155,7 @@ class Face():
         return N.normalize()
 
     def getCenter(self):
-        return (self.vertecies[0]+self.vertecies[1]+self.vertecies[2]) / 3
+        return (self.vertecies[0].vector+self.vertecies[1].vector+self.vertecies[2].vector) / 3
 
     def getPlane(self):
         return Plane(self.getCenter(), self.getNormal())
@@ -161,12 +165,12 @@ class Face():
         nnn = [math.inf] * 3
 
         for i in self.vertecies:
-            ppp[0] = max(i.x, ppp[0])
-            ppp[1] = max(i.y, ppp[1])
-            ppp[2] = max(i.z, ppp[2])
-            nnn[0] = min(i.x, nnn[0])
-            nnn[1] = min(i.y, nnn[1])
-            nnn[2] = min(i.z, nnn[2])
+            ppp[0] = max(i.vector.x, ppp[0])
+            ppp[1] = max(i.vector.y, ppp[1])
+            ppp[2] = max(i.vector.z, ppp[2])
+            nnn[0] = min(i.vector.x, nnn[0])
+            nnn[1] = min(i.vector.y, nnn[1])
+            nnn[2] = min(i.vector.z, nnn[2])
 
         pppv = TransformableV3(ppp)
         nnnv = TransformableV3(nnn)
@@ -183,10 +187,10 @@ class Face():
         if colpoint == None:
             return
 
-        #if not inBBox(colpoint[1], *self.getBBox()):
-            #return
+        if not inBBox(colpoint[1], *self.getBBox()):
+            return
 
-        points2D = plane.projectTo2D((colpoint[1], *self.vertecies))
+        points2D = plane.projectTo2D((colpoint[1], *[i.vector for i in self.vertecies]))
 
         BitoA = points2D[2] - points2D[1]
         XitoA = points2D[0] - points2D[1]
@@ -237,7 +241,7 @@ class Object():
         self.faces: list[Face] = faces
 
     def getVerts(self):
-        verts: list[TransformableV3] = []
+        verts: list[Vertex] = []
         for i in self.faces:
             for j in i.vertecies:
                 if not j in verts:
@@ -253,12 +257,12 @@ class Object():
         nnn = [math.inf] * 3
 
         for i in self.getVerts():
-            ppp[0] = max(i.x, ppp[0])
-            ppp[1] = max(i.y, ppp[1])
-            ppp[2] = max(i.z, ppp[2])
-            nnn[0] = min(i.x, nnn[0])
-            nnn[1] = min(i.y, nnn[1])
-            nnn[2] = min(i.z, nnn[2])
+            ppp[0] = max(i.vector.x, ppp[0])
+            ppp[1] = max(i.vector.y, ppp[1])
+            ppp[2] = max(i.vector.z, ppp[2])
+            nnn[0] = min(i.vector.x, nnn[0])
+            nnn[1] = min(i.vector.y, nnn[1])
+            nnn[2] = min(i.vector.z, nnn[2])
 
         pppv = TransformableV3(ppp)
         nnnv = TransformableV3(nnn)
@@ -269,17 +273,16 @@ class Object():
         verts = self.getVerts()
 
         for i in verts:
-            i.translateT_ip(vect)
+            i.vector.translateT_ip(vect)
 
     def rotate(self, angle, axis):
         verts = self.getVerts()
-        print(verts)
 
         ppp, nnn = self.getBBox()
         center = nnn + ((ppp - nnn) * 0.5)
 
         for i in verts:
-            i.rotateT_ip(center, angle, axis)
+            i.vector.rotateT_ip(center, angle, axis)
 
     def scale(self, factor):
         verts = self.getVerts()
@@ -288,13 +291,14 @@ class Object():
         center = nnn + ((ppp - nnn) * 0.5)
 
         for i in verts:
-            i.scaleT_ip(factor, center)
+            i.vector.scaleT_ip(factor, center)
 
     @staticmethod
     def newFromStl(path, HS = (0, 0)):
-        allverts = []
+        allpoints = []
         curverts = []
         allfaces = []
+        allverts = []
         with open(path, 'r') as f:
             for i in f.readlines():
                 nums = i.lstrip()
@@ -303,13 +307,13 @@ class Object():
                     nums = nums.split()
 
                     nums = tuple(map(lambda x: float(x), nums))
-                    point = TransformableV3(nums)
 
                     try:
-                        curverts.append(allverts.index(point))
+                        curverts.append(allpoints.index(nums))
                     except ValueError:
-                        allverts.append(point)
-                        curverts.append(len(allverts)-1)
+                        allpoints.append(nums)
+                        allverts.append(Vertex(nums))
+                        curverts.append(len(allpoints)-1)
 
                 elif nums.startswith('endfacet'):
                     face = Face([allverts[v] for v in curverts], HS)
@@ -328,7 +332,7 @@ class Camera(Ray):
         super().__init__(TransformableV3((0, -5, 0)), TransformableV3((0, 1, 0)))
         self.clipDistance = 100000000
         self.angle = 20
-        self.resolution = 32
+        self.resolution = 128
 
     def castRay(self, cord):
         angleX = ((cord[0] - (self.resolution / 2)) / (self.resolution / 2)) * self.angle
@@ -381,9 +385,10 @@ camera = Camera()
 light = Light(TransformableV3((0.152, 0.161, -0.181)), 255)
 shape = Object.newFromStl("C:/Users/beebf/Downloads/untitled.stl")
 scene = Scene(camera, [shape], light)
-print(scene.shapes[0].faces[0].vertecies[0])
+print(scene.shapes[0].faces[0].vertecies[0].vector)
+print(scene.shapes[0].faces[1].vertecies[0])
 scene.shapes[0].rotate(36, TransformableV3(1, 0, 0))
-print(scene.shapes[0].faces[0].vertecies[0])
+print(scene.shapes[0].faces[0].vertecies[0].vector)
 
 # print(camera.castRay((14, 2)).getDestination())
 
