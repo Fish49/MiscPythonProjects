@@ -76,9 +76,9 @@ if False:
                 addStr = '-'
 
             if len(j[2]) == 1:
-                apStr = f'-{'-'*j[2][0]}{addStr*addon}'
+                apStr = '-' + '-'*j[2][0] + addStr*addon
             else:
-                apStr = f'->{'+'*j[2][0]}[<{'-'*j[2][1]}>-]<{addStr*addon}'
+                apStr = '->' + '+'*j[2][0] + '[<' + '-'*j[2][1] + '>-]<' + addStr*addon
 
         else:
             addon = i - j[1]
@@ -89,9 +89,9 @@ if False:
                 addStr = '+'
 
             if len(j[2]) == 1:
-                apStr = f'{'+'*j[2][0]}{addStr*addon}'
+                apStr = '+'*j[2][0] + addStr*addon
             else:
-                apStr = f'>{'+'*j[2][0]}[<{'+'*j[2][1]}>-]<{addStr*addon}'
+                apStr = '>' + '+'*j[2][0] + '[<' + '+'*j[2][1] + '>-]<' + addStr*addon
 
         strings.append(apStr)
 
@@ -109,6 +109,17 @@ else:
     # print(len(strings[-1]))
 
     if input('use string? >>').lower() in ('y', 'yes', 'true', 't'):
+        useString = True
+        if input('print? >>').lower() in ('y', 'yes', 'true', 't'):
+            printing = True
+        else:
+            printing = False
+    else:
+        useString = False
+        printing = False
+
+
+    if useString:
         encode = [ord(i) for i in input('>>')]
     else:
         encode = [int(i) for i in input('>>').replace(' ', '').split(',')]
@@ -117,7 +128,9 @@ else:
     for i, j in enumerate(encode):
         curString: str = strings[j]
 
-        if (i + 1) < len(encode):
+        if printing:
+            curString += '.>'
+        else:
             if curString.endswith('<'):
                 curString = curString[:-1]
             else:
@@ -127,6 +140,6 @@ else:
         curString += f'load {j}\n'
         finalString += curString
 
-    finalString += ('<' * (len(encode)-1)) + '  reset to 0'
+    finalString += '[<]   reset to 0'
 
-print(finalString)
+    print(finalString)
