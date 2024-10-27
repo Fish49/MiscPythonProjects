@@ -11,7 +11,6 @@ it lets you define a heap as a maxheap, and it lets you print the heap in a beau
 '''
 
 from math import log2, floor
-import random
 from typing import Callable
 
 def _parent(index: int) -> int:
@@ -68,20 +67,35 @@ def _bubbleDown(heap: list, index: int, maxHeap: bool = False, key: Callable = l
             else:
                 break
 
-def heapify(inputList: list, maxHeap: bool = False, key: Callable = lambda x: x):
+def heapify(inputList: list, maxHeap: bool = False, key: Callable = lambda x: x) -> None:
+    '''
+    gives a list the heap property in place in O(len(list)).
+    it will be a max heap if maxHeap is specified as true.
+    will use the key function to get the value of an item, useful for tuples and custom data types.
+    '''
     for i in range(len(inputList)):
         _bubbleDown(inputList, len(inputList) - i - 1, maxHeap, key)
 
-def heapified(inputList: list, maxHeap: bool = False, key: Callable = lambda x: x):
+def heapified(inputList: list, maxHeap: bool = False, key: Callable = lambda x: x) -> list:
+    '''
+    same thing as heapify except it doesnt do it in place an instead copies the list.
+    its O(len(list)) to copy the list, and O(len(list)) to heapify the copied list.
+    '''
     copyList = inputList.copy()
     heapify(copyList, maxHeap, key)
     return copyList
 
 def append(heap: list, item, maxHeap: bool = False, key: Callable = lambda x: x):
+    '''
+    adds a new element to the heap, maintaining its heap property.
+    '''
     heap.append(item)
     _bubbleUp(heap, len(heap) - 1, maxHeap, key)
 
 def pop(heap: list, maxHeap: bool = False, key: Callable = lambda x: x, index: int = None):
+    '''
+    removes an element from the heap (the top element if index is unspecified), maintaining its heap property.
+    '''
     sign = -1 if maxHeap else 1
 
     if index is None:
@@ -99,7 +113,50 @@ def pop(heap: list, maxHeap: bool = False, key: Callable = lambda x: x, index: i
 
     return returnValue
 
+def popAppend(heap: list, item, maxHeap: bool = False, key: Callable = lambda x: x, index: int = None):
+    '''
+    popAppend will remove an element from the heap (the top element if index is unspecified), and add a new element.
+    it will never pop the element you added. if you want it to be able to remove your element, use appendPop.
+    '''
+    sign = -1 if maxHeap else 1
+
+    if index is None:
+        returnValue = heap[0]
+        heap[0] = item
+        _bubbleDown(heap, 0, maxHeap, key)
+
+    else:
+        returnValue = heap[index]
+        heap[index] = item
+        if sign * key(heap[index]) > sign * key(returnValue):
+            _bubbleDown(heap, index, maxHeap, key)
+        else:
+            _bubbleUp(heap, index, maxHeap, key)
+
+    return returnValue
+
+def appendPop(heap: list, item, maxHeap: bool = False, key: Callable = lambda x: x, index: int = None):
+    '''
+    appendPop (not to be confused with popAppend) will add a new element and then remove one, possibly the one you just added.
+    this is ideal for applications where you wantt to maintain the minimum or maximum few values from a continous input.
+    '''
+    sign = -1 if maxHeap else 1
+
+    if index is None:
+        if sign * key(item) < sign * key(heap[0]):
+            return item
+
+        else:
+            return popAppend(heap, item, maxHeap, key, index)
+
+    else:
+        append(heap, item, maxHeap, key)
+        return pop(heap, maxHeap, key, index)
+
 def heapToString(heap: list):
+    '''
+    converts your heap to a string for debugging purposes.
+    '''
     L = '┴'
     T = '┬'
     I = '─'
