@@ -72,6 +72,10 @@ class Circle():
         self.radius = radius
 
     @staticmethod
+    def point3(point1, point2, point3):
+        pass
+
+    @staticmethod
     def line2circle1(line1, line2, circle):
         # (newCenter - line1.origin).dot(rv1) = newRadius
         # (newCenter - line2.origin).dot(rv2) = newRadius
@@ -85,11 +89,10 @@ class Circle():
         # (newCenter.x * rv1.x) + (newCenter.y * rv1.y) - line1.origin.dot(rv1) = newRadius
         # (newCenter.x * rv2.x) + (newCenter.y * rv2.y) - line2.origin.dot(rv2) = newRadius
 
-        # (newCenter.x * rv1.x) + (newCenter.y * rv1.y) - line1.origin.dot(rv1) = (newCenter.x * rv2.x) + (newCenter.y * rv2.y) - line2.origin.dot(rv2)
+        # (newCenter.x * rv1.x) - (newCenter.x * rv2.x) + (newCenter.y * rv1.y) - (newCenter.y * rv2.y) - line1.origin.dot(rv1) + line2.origin.dot(rv2) = 0
+        # newCenter.x * (rv1.x - rv2.x) + newCenter.y * (rv1.y - rv2.y) - (line1.origin . rv1) + (line2.origin . rv2) = 0
+        # term1 = ((line1.origin . rv1) - (line2.origin . rv2)) / (rv1.x - rv2.x)
+        # newCenter.x = ((-newCenter.y * (rv1.y - rv2.y)) / (rv1.x - rv2.x)) + term1
 
-        # newCenter.x = ((newCenter.y * rv2.y) - line2.origin.dot(rv2) - (newCenter.y * rv1.y) + line1.origin.dot(rv1)) / (rv1.x - rv2.x)
-
-        # (newCenter.x * rv1.x) + (newCenter.y * rv1.y) - line1.origin.dot(rv1) = sqrt((circle.center.x - newCenter.x)**2 + (circle.center.y - newCenter.y)**2) - circle.radius
-        # ((newCenter.x * rv1.x) + (newCenter.y * rv1.y) - line1.origin.dot(rv1) + circle.radius)**2 = (circle.center.x - newCenter.x)**2 + (circle.center.y - newCenter.y)**2
-        # (newCenter.y * rv1.y)**2 + 2(newCenter.y * rv1)((newCenter.x * rv1.x) - line1.origin.dot(rv1) + circle.radius)) + ((newCenter.x * rv1.x) - line1.origin.dot(rv1) + circle.radius))**2 = (circle.center.x - newCenter.x)**2 + (circle.center.y - newCenter.y)**2
+        # sqrt((circle.center.x - newCenter.x)**2 + (circle.center.y - newCenter.y)**2) - circle.radius = newRadius
         pass
