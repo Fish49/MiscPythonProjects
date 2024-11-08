@@ -28,7 +28,7 @@ def vizDataToString(data, stringify = True):
     else:
         return str(data)
 
-def arrayToString(inputArray, horizontal: bool = True):
+def arrayToString(inputArray: list, horizontal: bool = True):
     retStr = ''
     inputAsStrings = [vizDataToString(i) for i in inputArray]
 
@@ -54,11 +54,70 @@ def arrayToString(inputArray, horizontal: bool = True):
 
     return retStr
 
+def gridToString(inputGrid: list[list]):
+    retStr = ''
+    longest = 0
+    inputAsStrings = []
+    for x in inputGrid:
+        row = []
+        for y in x:
+            row.append(str(y))
+            if len(str(y)) > longest:
+                longest = len(str(y))
+        inputAsStrings.append(row)
+
+    retStr += box['dtl'] + (((box['dh'] * (longest + 2)) + box['dt']) * len(inputGrid[0]))[:-1] + box['dtr'] + '\n'
+
+    for xi, x in enumerate(inputAsStrings):
+        row = box['dv']
+        for y in x:
+            row += f' {y} {box['dv']}'
+
+        retStr += row + '\n'
+
+        if xi + 1 < len(inputAsStrings):
+            retStr += box['dl'] + (((box['dh'] * (longest + 2)) + box['dm']) * len(inputGrid[0]))[:-1] + box['dr'] + '\n'
+        else:
+            retStr += box['dbl'] + (((box['dh'] * (longest + 2)) + box['db']) * len(inputGrid[0]))[:-1] + box['dbr']
+
+    return retStr
+
+def chessToString(fen: str):
+    # input chess notation in Forsyth-Edwards Notation
+    boardStr, _, _, _, _, _ = fen.split()
+    boardList = [['#', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h']]
+    row = [1]
+    rowInd = 2
+    boxInd = 0
+    for i in boardStr:
+        if i == '/':
+            boardList.append(row)
+            row = [rowInd]
+            rowInd += 1
+        elif i.isdecimal():
+            for j in range(int(i)):
+                row.append("#" if boxInd % 2 == 1 else ' ')
+                boxInd += 1
+        else:
+            row.append({
+                'K': '♔', 'k': '♚',
+                'Q': '♕', 'q': '♛',
+                'B': '♗', 'b': '♝',
+                'N': '♘', 'n': '♞',
+                'R': '♖', 'r': '♜',
+                'P': '♙', 'p': '♟'
+            }[i])
+            boxInd += 1
+    boardList.append(row)
+
+    return gridToString(boardList[::-1])
+
 def bytesToBraille(data: bytearray):
     retStr = ''
     for i in data:
         retStr += chr(0x2800 + i) + ' '
     return retStr
 
-with open('Apollonius.py', 'br') as file:
-    print(bytesToBraille(bytearray(file.read())))
+print(chessToString('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'))
+print(chessToString('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1'))
+print(chessToString('rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2'))
