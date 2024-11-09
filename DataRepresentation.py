@@ -4,11 +4,13 @@ for converting specific types of data to strings for printing to a console
 -PaiShoFish49
 '''
 
+import math
+
 '''
-┌─┬─┐  ╔═╦═╗  ╭─╮
-│ │ │  ║ ║ ║  │ │
-├─┼─┤  ╠═╬═╣  │ │
-└─┴─┘  ╚═╩═╝  ╰─╯
+┌─┬─┐  ╔═╦═╗  ╭─┴─╮       ╭┴┴┴┴┴╮ ┴┴┴┴┴┬┴┴┴┴┴╬╬
+│ │ │  ║ ║ ║  ┤   ├     ┼┼┤ ╬ ╬ ├┼┼    ├──────╬╬╬╬
+├─┼─┤  ╠═╬═╣  ┤   ├       ╰─────╯ ─────╯
+└─┴─┘  ╚═╩═╝  ╰─┬─╯        ┼   ┼    ┼ ┼
 '''
 box = {
     'sh': '─', 'sv': '│', 'sm': '┼',
@@ -118,6 +120,3 @@ def bytesToBraille(data: bytearray):
         retStr += chr(0x2800 + i) + ' '
     return retStr
 
-print(chessToString('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'))
-print(chessToString('rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1'))
-print(chessToString('rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2'))
